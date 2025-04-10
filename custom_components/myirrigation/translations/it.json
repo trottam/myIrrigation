@@ -1,0 +1,17 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configura My Irrigation",
+        "description": "Inserisci le credenziali e i dati del modulo.",
+        "data": {
+          "username": "Nome utente",
+          "password": "Password",
+          "zone": "Zona",
+          "id_module": "ID Modulo",
+          "serial_number": "Numero di serie"
+        }
+      }
+    }
+  }
+}
