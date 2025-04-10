@@ -1,0 +1,9 @@
+{
+  "domain": "myirrigation",
+  "name": "My Irrigation",
+  "version": "1.0.0",
+  "documentation": "https://github.com/trottam/myirrigation",
+  "requirements": ["requests"],
+  "codeowners": ["@trottam"],
+  "config_flow": true
+}
