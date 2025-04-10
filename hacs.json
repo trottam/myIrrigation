@@ -1,0 +1,10 @@
+{
+  "name": "My Irrigation",
+  "domain": "myirrigation",
+  "documentation": "https://github.com/tuo-utente/myirrigation",
+  "version": "1.0.0",
+  "requirements": [],
+  "codeowners": ["@trottam"],
+  "config_flow": true,
+  "iot_class": "cloud_polling"
+}
