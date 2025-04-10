@@ -89,3 +89,25 @@ class MyIrrigationSwitch(SwitchEntity):
 
         except requests.exceptions.RequestException as e:
             _LOGGER.error("Errore durante l'invio del comando %s: %s", command, e)
+            
+async def async_setup_entry(hass: HomeAssistant, entry):
+    username = entry.data.get("username")
+    password = entry.data.get("password")
+    zone = entry.data.get("zone")
+    module_id = entry.data.get("id_module")
+    serial_number = entry.data.get("serial_number")
+
+    # Crea il dispositivo (entità)
+    switch = MyIrrigationSwitch(hass, username, password, zone, module_id, serial_number)
+    hass.data.setdefault("myirrigation", {})[entry.entry_id] = switch
+
+    # Registrare il dispositivo nell'integrazione
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(entry, "switch")
+    )
+    return True
+
+async def async_unload_entry(hass: HomeAssistant, entry):
+    """Unload the entry."""
+    hass.data["myirrigation"].pop(entry.entry_id)
+    return await hass.config_entries.async_forward_entry_unload(entry, "switch")
