@@ -5,7 +5,7 @@
   "documentation": "https://github.com/tuo-username/home-assistant-myirrigation-switch",
   "issue_tracker": "https://github.com/tuo-username/home-assistant-myirrigation-switch/issues",
   "dependencies": [],
-  "codeowners": ["@tuo-username"],
+  "codeowners": ["@trottam"],
   "requirements": ["requests>=2.25.0"],
   "iot_class": "cloud_polling"
 }
