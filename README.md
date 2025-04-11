@@ -2,18 +2,17 @@
 
 [![HACS](https://img.shields.io/badge/HACS-Default-orange.svg)](https://hacs.xyz)
 
-My Irrigation is a custom integration for Home Assistant that allows you to control your MySolem irrigation system through Home Assistant. This integration supports controlling the irrigation module and reading its status.
+My Irrigation is a custom integration for Home Assistant that allows you to control your specific irrigation system through Home Assistant. This integration supports controlling the irrigation module and reading its status.
 
 ## Features
-- Turn on/off irrigation zones.
-- Control multiple modules with different configurations (username, password, zone, module ID, serial number).
+- Turn on/off irrigation.
 - Easy setup via Home Assistant Config Flow.
 
 ## Installation
 
 ### 1. Install via HACS (Home Assistant Community Store)
 1. Open Home Assistant and go to **HACS** in the sidebar.
-2. Click on the **Frontend** tab.
+2. Click on the **...** button on the top right.
 3. Click on the **Custom repositories** button and add `https://github.com/trottam/myIrrigation` in the repository URL field.
 4. Install the integration through the HACS interface.
 
@@ -30,7 +29,8 @@ Once installed, follow these steps to set up the integration:
 1. Go to **Configuration** -> **Integrations** in Home Assistant.
 2. Click the **+** button to add a new integration and search for "My Irrigation".
 3. Enter the required details (username, password, zone, module ID, and serial number).
-4. Click **Submit** and the integration will be added.
+4. zone should be like "Europa". ModuleID and serialNumber are the ones from your device.
+5. Click **Submit** and the integration will be added.
 
 ## Usage
 
