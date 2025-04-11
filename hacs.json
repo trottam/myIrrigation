@@ -3,7 +3,7 @@
   "domain": "myirrigation",
   "documentation": "https://github.com/trottam/myIrrigation",
   "issue_tracker": "https://github.com/trottam/myIrrigation/issues",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "requirements": [],
   "codeowners": ["@trottam"],
   "config_flow": true,
