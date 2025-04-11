@@ -12,7 +12,7 @@ My Irrigation is a custom integration for Home Assistant that allows you to cont
 ### 1. Install via HACS (Home Assistant Community Store)
 1. Open Home Assistant and go to **HACS** in the sidebar.
 2. Click on the **Frontend** tab.
-3. Click on the **Custom repositories** button and add `https://github.com/tuo-utente/myirrigation` in the repository URL field.
+3. Click on the **Custom repositories** button and add `https://github.com/trottam/myIrrigation` in the repository URL field.
 4. Install the integration through the HACS interface.
 
 ### 2. Manual Installation
