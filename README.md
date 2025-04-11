@@ -1,5 +1,7 @@
 # My Irrigation - Home Assistant Integration
 
+[![HACS](https://img.shields.io/badge/HACS-Default-orange.svg)](https://hacs.xyz)
+
 My Irrigation is a custom integration for Home Assistant that allows you to control your MySolem irrigation system through Home Assistant. This integration supports controlling the irrigation module and reading its status.
 
 ## Features
