@@ -1,20 +1,53 @@
-from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import Entity
+import logging
 import requests
 import time
-import logging
+from homeassistant.components.switch import SwitchEntity
 
 _LOGGER = logging.getLogger(__name__)
 
-# Costanti URL per la comunicazione con il servizio
-COOKIE_URL = "https://www.myirrigationservice.com/signin"
-LOGIN_URL = "https://www.myirrigationservice.com/signin"
-COMMAND_URL = "https://www.myirrigationservice.com/api/irrigation/command"
+# URL e headers per la comunicazione con il servizio
+COOKIE_URL = "https://www.mysolem.com/login"
+LOGIN_URL = "https://www.mysolem.com/login"
+COMMAND_URL = "https://www.mysolem.com/module/sendManualModuleCommand"
+
+HEADERS_LOGIN = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Cache-Control": "max-age=0",
+    "Connection": "keep-alive",
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Host": "www.mysolem.com",
+    "Origin": "https://www.mysolem.com",
+    "Referer": "https://www.mysolem.com/login",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
+}
+
+def HEADERS_COMMAND(id_module, cookie):
+    return {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "it-IT,it;q=0.9,en;q=0.8",
+        "Connection": "keep-alive",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Host": "www.mysolem.com",
+        "Origin": "https://www.mysolem.com",
+        "Referer": f"https://www.mysolem.com/module/{id_module}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+        "X-Requested-With": "XMLHttpRequest",
+        "Cookie": cookie
+    }
+
+def setup_platform(hass, config, add_entities, discovery_info=None):
+    username = config.get("username")
+    password = config.get("password")
+    zone = config.get("zone")
+    module_id = config.get("module_id")
+    serial_number = config.get("serial_number")
+    
+    add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
 
 class MyIrrigationSwitch(SwitchEntity):
-    def __init__(self, hass, username, password, zone, module_id, serial_number):
-        self.hass = hass
+    def __init__(self, username, password, zone, module_id, serial_number):
         self._attr_name = "Irrigatore MyIrrigation"
         self._is_on = False
         self.username = username
@@ -23,10 +56,6 @@ class MyIrrigationSwitch(SwitchEntity):
         self.module_id = module_id
         self.serial_number = serial_number
         self._last_called = 0  # Timestamp ultima chiamata
-
-    @property
-    def is_on(self):
-        return self._is_on
 
     async def async_turn_on(self, **kwargs):
         if self._can_execute_command():
@@ -51,8 +80,8 @@ class MyIrrigationSwitch(SwitchEntity):
 
     def _send_command(self, command):
         retries = 3
-        session = requests.Session()
         for attempt in range(retries):
+            session = requests.Session()
             try:
                 session.get(COOKIE_URL)
                 cookie = session.cookies.get_dict()
@@ -66,7 +95,7 @@ class MyIrrigationSwitch(SwitchEntity):
 
                 login_response = session.post(
                     LOGIN_URL,
-                    headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie_str},
+                    headers={**HEADERS_LOGIN, "Cookie": cookie_str},
                     data=login_payload,
                     timeout=10
                 )
@@ -79,11 +108,7 @@ class MyIrrigationSwitch(SwitchEntity):
                     "commandParams": "0"
                 }
 
-                command_headers = {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Cookie": cookie_str,
-                    "Module-ID": self.module_id
-                }
+                command_headers = HEADERS_COMMAND(self.module_id, cookie_str)
 
                 response = session.post(
                     COMMAND_URL,
@@ -105,15 +130,3 @@ class MyIrrigationSwitch(SwitchEntity):
                     _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.", command)
             finally:
                 session.close()
-
-async def async_setup_entry(hass, entry: ConfigEntry):
-    # Creare l'entità quando viene configurata una nuova entry
-    hass.data[DOMAIN] = MyIrrigationSwitch(
-        hass,
-        entry.data["username"],
-        entry.data["password"],
-        entry.data["zone"],
-        entry.data["id_module"],
-        entry.data["serial_number"]
-    )
-    return True
