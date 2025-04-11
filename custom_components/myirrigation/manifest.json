@@ -2,7 +2,7 @@
   "domain": "myirrigation",
   "name": "My Irrigation Switch",
   "version": "1.0.1",
-  "documentation": "https://github.com/trottam/myIrrigation"
+  "documentation": "https://github.com/trottam/myIrrigation",
   "issue_tracker": "https://github.com/trottam/myIrrigation/issues",
   "dependencies": [],
   "codeowners": ["@trottam"],
