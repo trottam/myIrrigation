@@ -2,6 +2,7 @@ import logging
 import requests
 import time
 from homeassistant.components.switch import SwitchEntity
+from homeassistant import config_entries
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,14 +38,18 @@ def HEADERS_COMMAND(id_module, cookie):
         "Cookie": cookie
     }
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    username = config.get("username")
-    password = config.get("password")
-    zone = config.get("zone")
-    module_id = config.get("module_id")
-    serial_number = config.get("serial_number")
-    
-    add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
+# Aggiungi la funzione async_setup_entry per configurazioni basate su flow
+async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_entities):
+    """Set up the switch platform based on a config entry."""
+    # Estrai i dati di configurazione dalla voce dell'entrata
+    username = entry.data["username"]
+    password = entry.data["password"]
+    zone = entry.data["zone"]
+    module_id = entry.data["module_id"]
+    serial_number = entry.data["serial_number"]
+
+    # Aggiungi l'entità del dispositivo (MyIrrigationSwitch)
+    async_add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
 
 class MyIrrigationSwitch(SwitchEntity):
     def __init__(self, username, password, zone, module_id, serial_number):
