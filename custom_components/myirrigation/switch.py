@@ -47,7 +47,9 @@ async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_e
     zone = entry.data["zone"]
     module_id = entry.data["module_id"]
     serial_number = entry.data["serial_number"]
-
+    
+    _LOGGER.info("Login con utente: %s, zona: %s, modulo: %s, seriale: %s", self.username, self.zone, self.module_id, self.serial_number)
+    
     # Aggiungi l'entità del dispositivo (MyIrrigationSwitch)
     async_add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
 
@@ -89,6 +91,8 @@ class MyIrrigationSwitch(SwitchEntity):
             return False
 
     def _send_command(self, command):
+        _LOGGER.info("Invio comando HTTP: %s", command)
+        
         retries = 3
         for attempt in range(retries):
             session = requests.Session()
