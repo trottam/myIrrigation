@@ -1,40 +1,20 @@
-import logging
+from homeassistant.components.switch import SwitchEntity
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.helpers.entity import Entity
 import requests
 import time
-from homeassistant.components.switch import SwitchEntity
+import logging
 
 _LOGGER = logging.getLogger(__name__)
 
+# Costanti URL per la comunicazione con il servizio
 COOKIE_URL = "https://www.myirrigationservice.com/signin"
 LOGIN_URL = "https://www.myirrigationservice.com/signin"
 COMMAND_URL = "https://www.myirrigationservice.com/api/irrigation/command"
 
-HEADERS_LOGIN = {
-    "Content-Type": "application/x-www-form-urlencoded",
-    "User-Agent": "Mozilla/5.0",
-}
-
-def HEADERS_COMMAND(module_id, cookie_str):
-    return {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "Mozilla/5.0",
-        "Referer": "https://www.myirrigationservice.com/dashboard",
-        "Cookie": cookie_str,
-        "X-Requested-With": "XMLHttpRequest",
-        "Module-ID": module_id,
-    }
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    username = config.get("username")
-    password = config.get("password")
-    zone = config.get("zone")
-    module_id = config.get("module_id")
-    serial_number = config.get("serial_number")
-    
-    add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
-
 class MyIrrigationSwitch(SwitchEntity):
-    def __init__(self, username, password, zone, module_id, serial_number):
+    def __init__(self, hass, username, password, zone, module_id, serial_number):
+        self.hass = hass
         self._attr_name = "Irrigatore MyIrrigation"
         self._is_on = False
         self.username = username
@@ -43,6 +23,10 @@ class MyIrrigationSwitch(SwitchEntity):
         self.module_id = module_id
         self.serial_number = serial_number
         self._last_called = 0  # Timestamp ultima chiamata
+
+    @property
+    def is_on(self):
+        return self._is_on
 
     async def async_turn_on(self, **kwargs):
         if self._can_execute_command():
@@ -67,8 +51,8 @@ class MyIrrigationSwitch(SwitchEntity):
 
     def _send_command(self, command):
         retries = 3
+        session = requests.Session()
         for attempt in range(retries):
-            session = requests.Session()
             try:
                 session.get(COOKIE_URL)
                 cookie = session.cookies.get_dict()
@@ -82,7 +66,7 @@ class MyIrrigationSwitch(SwitchEntity):
 
                 login_response = session.post(
                     LOGIN_URL,
-                    headers={**HEADERS_LOGIN, "Cookie": cookie_str},
+                    headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie_str},
                     data=login_payload,
                     timeout=10
                 )
@@ -95,7 +79,11 @@ class MyIrrigationSwitch(SwitchEntity):
                     "commandParams": "0"
                 }
 
-                command_headers = HEADERS_COMMAND(self.module_id, cookie_str)
+                command_headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Cookie": cookie_str,
+                    "Module-ID": self.module_id
+                }
 
                 response = session.post(
                     COMMAND_URL,
@@ -117,3 +105,15 @@ class MyIrrigationSwitch(SwitchEntity):
                     _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.", command)
             finally:
                 session.close()
+
+async def async_setup_entry(hass, entry: ConfigEntry):
+    # Creare l'entità quando viene configurata una nuova entry
+    hass.data[DOMAIN] = MyIrrigationSwitch(
+        hass,
+        entry.data["username"],
+        entry.data["password"],
+        entry.data["zone"],
+        entry.data["id_module"],
+        entry.data["serial_number"]
+    )
+    return True
