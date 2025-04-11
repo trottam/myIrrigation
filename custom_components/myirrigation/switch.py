@@ -54,6 +54,7 @@ async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_e
 class MyIrrigationSwitch(SwitchEntity):
     def __init__(self, username, password, zone, module_id, serial_number):
         self._attr_name = "Irrigatore MyIrrigation"
+        self._attr_unique_id = f"myirrigation_{module_id}_{serial_number}"
         self._is_on = False
         self.username = username
         self.password = password
