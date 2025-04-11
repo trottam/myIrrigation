@@ -48,7 +48,7 @@ async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_e
     module_id = entry.data["module_id"]
     serial_number = entry.data["serial_number"]
     
-    _LOGGER.info("Login con utente: %s, zona: %s, modulo: %s, seriale: %s", self.username, self.zone, self.module_id, self.serial_number)
+    _LOGGER.info("Login con utente: %s, zona: %s, modulo: %s, seriale: %s", username, zone, module_id, serial_number)
     
     # Aggiungi l'entità del dispositivo (MyIrrigationSwitch)
     async_add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
