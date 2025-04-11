@@ -70,11 +70,15 @@ class MyIrrigationSwitch(SwitchEntity):
             self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
+        _LOGGER.info("Chiamata async_turn_off()")
         if self._can_execute_command():
+            _LOGGER.info("Esecuzione comando OFF")
             await self.hass.async_add_executor_job(self._send_command, "off")
             self._is_on = False
             self.async_write_ha_state()
-
+        else:
+            _LOGGER.info("Comando OFF ignorato: troppa frequenza")
+            
     def _can_execute_command(self):
         current_time = time.time()
         if current_time - self._last_called > 60:
