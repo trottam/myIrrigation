@@ -2,7 +2,7 @@
   "name": "My Irrigation",
   "domain": "myirrigation",
   "documentation": "https://github.com/trottam/myIrrigation",
-  "issue_tracker": "https://github.com/trottam/myIrrigation/issues"
+  "issue_tracker": "https://github.com/trottam/myIrrigation/issues",
   "version": "1.0.0",
   "requirements": [],
   "codeowners": ["@trottam"],
