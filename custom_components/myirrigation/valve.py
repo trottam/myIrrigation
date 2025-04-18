@@ -1,7 +1,7 @@
 import logging
 import requests
 import time
-from homeassistant.components.valve import ValveEntity
+from homeassistant.components.valve import ValveEntity, ValveEntityFeature
 from homeassistant import config_entries
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.const import STATE_OPEN, STATE_CLOSED
