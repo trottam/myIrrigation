@@ -38,11 +38,6 @@ def HEADERS_COMMAND(id_module, cookie):
         "Cookie": cookie
     }
 
-@property
-def reports_position(self):
-    # Imposta la posizione del report (ad esempio, se l'irrigatore è aperto o chiuso)
-    return self._position
-
 async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_entities):
     """Setup della piattaforma valve basata sulla config entry."""
     username = entry.data["username"]
@@ -75,6 +70,11 @@ class MyIrrigationValve(ValveEntity):
     @property
     def is_open(self):
         return self._is_open
+
+    @property
+    def reports_position(self):
+        # Imposta la posizione del report (ad esempio, se l'irrigatore è aperto o chiuso)
+        return self._position
 
     async def async_open_valve(self, **kwargs):
         if self._can_execute_command():
