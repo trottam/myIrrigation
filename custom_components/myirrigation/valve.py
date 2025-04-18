@@ -84,18 +84,20 @@ class MyIrrigationValve(ValveEntity):
         """Ritorna lo stato dell'entità, in base alla posizione."""
         return 'on' if self._position == 1 else 'off'
 
-    async def async_open_valve(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         if self._can_execute_command():
             await self.hass.async_add_executor_job(self._send_command, "on")
             self._is_open = True
+            self._position = 1
             self.async_write_ha_state()
 
-    async def async_close_valve(self, **kwargs):
+    async def async_turn_off(self, **kwargs):
         _LOGGER.info("Chiamata async_close_valve()")
         if self._can_execute_command():
             _LOGGER.info("Esecuzione comando OFF")
             await self.hass.async_add_executor_job(self._send_command, "off")
             self._is_open = False
+            self._position = 0
             self.async_write_ha_state()
         else:
             _LOGGER.info("Comando OFF ignorato: troppa frequenza")
