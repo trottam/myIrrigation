@@ -66,6 +66,7 @@ class MyIrrigationValve(ValveEntity):
         self.module_id = module_id
         self.serial_number = serial_number
         self._last_called = 0
+        self._position = 0
 
     @property
     def is_open(self):
@@ -73,8 +74,15 @@ class MyIrrigationValve(ValveEntity):
 
     @property
     def reports_position(self):
-        # Imposta la posizione del report (ad esempio, se l'irrigatore è aperto o chiuso)
+        """Restituisce la posizione della valvola."""
+        if self._position is None:
+            raise ValueError(f"'_position' non impostato per {self.entity_id}.")
         return self._position
+
+    @property
+    def state(self):
+        """Ritorna lo stato dell'entità, in base alla posizione."""
+        return 'on' if self._position == 1 else 'off'
 
     async def async_open_valve(self, **kwargs):
         if self._can_execute_command():
