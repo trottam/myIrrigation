@@ -107,6 +107,14 @@ class MyIrrigationValve(ValveEntity):
                 self._position = 0
                 self.async_write_ha_state()
 
+    async def async_open_valve(self, **kwargs):
+        """Apre la valvola."""
+        await self.async_turn_on()
+
+    async def async_close_valve(self, **kwargs):
+        """Chiude la valvola."""
+        await self.async_turn_off()
+
     def _can_execute_command(self):
         """Controlla se è possibile eseguire il comando."""
         current_time = time.time()
