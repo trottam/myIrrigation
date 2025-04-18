@@ -82,6 +82,15 @@ class MyIrrigationValve(ValveEntity):
         """Restituisce la posizione attuale della valvola."""
         return self._position
 
+    @property
+    def reports_position(self):
+        """Restituisce la posizione della valvola."""
+        # Assicurati che _position non sia None prima di restituirlo
+        if self._position is None:
+            _LOGGER.warning("La posizione non è stata impostata per %s", self.entity_id)
+            return 0  # Restituisci 0 se _position è None, come valore di fallback
+        return self._position
+
     async def async_turn_on(self, **kwargs):
         """Apre la valvola."""
         if self._can_execute_command():
