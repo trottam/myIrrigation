@@ -3,6 +3,9 @@ import requests
 import time
 from homeassistant.components.valve import ValveEntity
 from homeassistant import config_entries
+from homeassistant.helpers.entity import EntityDescription
+from homeassistant.const import STATE_OPEN, STATE_CLOSED
+from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,10 +53,6 @@ async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_e
 
     async_add_entities([MyIrrigationValve(username, password, zone, module_id, serial_number)])
 
-
-
-
-
 class MyIrrigationValve(ValveEntity):
     def __init__(self, username, password, zone, module_id, serial_number):
         self._attr_name = "Irrigatore MyIrrigation"
@@ -69,22 +68,22 @@ class MyIrrigationValve(ValveEntity):
         self._position = 0
 
     @property
+    def state(self):
+        """Ritorna lo stato dell'entità, in base alla posizione."""
+        return STATE_OPEN if self._position == 1 else STATE_CLOSED
+
+    @property
     def is_open(self):
+        """Restituisce se la valvola è aperta."""
         return self._is_open
 
     @property
-    def reports_position(self):
-        """Restituisce la posizione della valvola."""
-        if self._position is None:
-            raise ValueError(f"'_position' non impostato per {self.entity_id}.")
+    def current_valve_position(self):
+        """Restituisce la posizione attuale della valvola."""
         return self._position
 
-    @property
-    def state(self):
-        """Ritorna lo stato dell'entità, in base alla posizione."""
-        return 'on' if self._position == 1 else 'off'
-
     async def async_turn_on(self, **kwargs):
+        """Apre la valvola."""
         if self._can_execute_command():
             await self.hass.async_add_executor_job(self._send_command, "on")
             self._is_open = True
@@ -92,17 +91,15 @@ class MyIrrigationValve(ValveEntity):
             self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
-        _LOGGER.info("Chiamata async_close_valve()")
+        """Chiude la valvola."""
         if self._can_execute_command():
-            _LOGGER.info("Esecuzione comando OFF")
             await self.hass.async_add_executor_job(self._send_command, "off")
             self._is_open = False
             self._position = 0
             self.async_write_ha_state()
-        else:
-            _LOGGER.info("Comando OFF ignorato: troppa frequenza")
 
     def _can_execute_command(self):
+        """Controlla se è possibile eseguire il comando."""
         current_time = time.time()
         if current_time - self._last_called > 60:
             self._last_called = current_time
@@ -112,6 +109,7 @@ class MyIrrigationValve(ValveEntity):
             return False
 
     def _send_command(self, command):
+        """Invia il comando al modulo remoto."""
         _LOGGER.info("Invio comando HTTP: %s", command)
 
         retries = 3
