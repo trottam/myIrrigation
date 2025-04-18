@@ -51,6 +51,9 @@ async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_e
     async_add_entities([MyIrrigationValve(username, password, zone, module_id, serial_number)])
 
 
+
+
+
 class MyIrrigationValve(ValveEntity):
     def __init__(self, username, password, zone, module_id, serial_number):
         self._attr_name = "Irrigatore MyIrrigation"
