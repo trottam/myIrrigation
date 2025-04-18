@@ -9,7 +9,6 @@ from homeassistant.helpers.typing import ConfigType
 
 _LOGGER = logging.getLogger(__name__)
 
-# URL e headers per la comunicazione con il servizio
 COOKIE_URL = "https://www.mysolem.com/login"
 LOGIN_URL = "https://www.mysolem.com/login"
 COMMAND_URL = "https://www.mysolem.com/module/sendManualModuleCommand"
@@ -85,27 +84,28 @@ class MyIrrigationValve(ValveEntity):
     @property
     def reports_position(self):
         """Restituisce la posizione della valvola."""
-        # Assicurati che _position non sia None prima di restituirlo
         if self._position is None:
             _LOGGER.warning("La posizione non è stata impostata per %s", self.entity_id)
-            return 0  # Restituisci 0 se _position è None, come valore di fallback
+            return 0  # Fallback al valore di 0 se _position è None
         return self._position
 
     async def async_turn_on(self, **kwargs):
         """Apre la valvola."""
         if self._can_execute_command():
-            await self.hass.async_add_executor_job(self._send_command, "on")
-            self._is_open = True
-            self._position = 1
-            self.async_write_ha_state()
+            result = await self.hass.async_add_executor_job(self._send_command, "on")
+            if result:
+                self._is_open = True
+                self._position = 1
+                self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs):
         """Chiude la valvola."""
         if self._can_execute_command():
-            await self.hass.async_add_executor_job(self._send_command, "off")
-            self._is_open = False
-            self._position = 0
-            self.async_write_ha_state()
+            result = await self.hass.async_add_executor_job(self._send_command, "off")
+            if result:
+                self._is_open = False
+                self._position = 0
+                self.async_write_ha_state()
 
     def _can_execute_command(self):
         """Controlla se è possibile eseguire il comando."""
@@ -161,8 +161,7 @@ class MyIrrigationValve(ValveEntity):
                 response.raise_for_status()
 
                 _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
-                break
-
+                return True  # Ritorna True solo se la risposta è positiva
             except requests.exceptions.RequestException as e:
                 _LOGGER.error("Errore durante l'invio del comando '%s': %s", command, e)
                 if attempt < retries - 1:
@@ -172,3 +171,5 @@ class MyIrrigationValve(ValveEntity):
                     _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.", command)
             finally:
                 session.close()
+
+        return False  # Ritorna False se non è riuscito a inviare il comando
