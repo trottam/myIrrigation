@@ -65,6 +65,9 @@ class MyIrrigationValve(ValveEntity):
         self.serial_number = serial_number
         self._last_called = 0
         self._position = 0
+        self._attr_supported_features = (
+            ValveEntityFeature.OPEN | ValveEntityFeature.CLOSE
+        )
 
     @property
     def state(self):
