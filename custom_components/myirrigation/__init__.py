@@ -3,7 +3,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers import config_entry_flow
 from homeassistant import config_entries
 from .config_flow import ConfigFlow
-from .valve import async_setup_platform
+from .valve import async_setup_entry
 
 DOMAIN = "myirrigation"
 
