@@ -38,6 +38,11 @@ def HEADERS_COMMAND(id_module, cookie):
         "Cookie": cookie
     }
 
+@property
+def reports_position(self):
+    # Imposta la posizione del report (ad esempio, se l'irrigatore è aperto o chiuso)
+    return self._position
+
 async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_entities):
     """Setup della piattaforma valve basata sulla config entry."""
     username = entry.data["username"]
