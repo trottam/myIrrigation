@@ -1,7 +1,7 @@
 import logging
 import requests
 import time
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.valve import ValveEntity
 from homeassistant import config_entries
 
 _LOGGER = logging.getLogger(__name__)
@@ -38,49 +38,52 @@ def HEADERS_COMMAND(id_module, cookie):
         "Cookie": cookie
     }
 
-# Aggiungi la funzione async_setup_entry per configurazioni basate su flow
 async def async_setup_entry(hass, entry: config_entries.ConfigEntry, async_add_entities):
-    """Set up the switch platform based on a config entry."""
-    # Estrai i dati di configurazione dalla voce dell'entrata
+    """Setup della piattaforma valve basata sulla config entry."""
     username = entry.data["username"]
     password = entry.data["password"]
     zone = entry.data["zone"]
     module_id = entry.data["module_id"]
     serial_number = entry.data["serial_number"]
-    
-    _LOGGER.info("Login con utente: %s, zona: %s, modulo: %s, seriale: %s", username, zone, module_id, serial_number)
-    
-    # Aggiungi l'entità del dispositivo (MyIrrigationSwitch)
-    async_add_entities([MyIrrigationSwitch(username, password, zone, module_id, serial_number)])
 
-class MyIrrigationSwitch(SwitchEntity):
+    _LOGGER.info("Setup irrigatore con utente: %s, zona: %s, modulo: %s, seriale: %s", username, zone, module_id, serial_number)
+
+    async_add_entities([MyIrrigationValve(username, password, zone, module_id, serial_number)])
+
+
+class MyIrrigationValve(ValveEntity):
     def __init__(self, username, password, zone, module_id, serial_number):
         self._attr_name = "Irrigatore MyIrrigation"
         self._attr_unique_id = f"myirrigation_{module_id}_{serial_number}"
-        self._is_on = False
+        self._attr_supported_features = 0  # Nessuna funzionalità extra (come regolazione flusso)
+        self._is_open = False
         self.username = username
         self.password = password
         self.zone = zone
         self.module_id = module_id
         self.serial_number = serial_number
-        self._last_called = 0  # Timestamp ultima chiamata
+        self._last_called = 0
 
-    async def async_turn_on(self, **kwargs):
+    @property
+    def is_open(self):
+        return self._is_open
+
+    async def async_open_valve(self, **kwargs):
         if self._can_execute_command():
             await self.hass.async_add_executor_job(self._send_command, "on")
-            self._is_on = True
+            self._is_open = True
             self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs):
-        _LOGGER.info("Chiamata async_turn_off()")
+    async def async_close_valve(self, **kwargs):
+        _LOGGER.info("Chiamata async_close_valve()")
         if self._can_execute_command():
             _LOGGER.info("Esecuzione comando OFF")
             await self.hass.async_add_executor_job(self._send_command, "off")
-            self._is_on = False
+            self._is_open = False
             self.async_write_ha_state()
         else:
             _LOGGER.info("Comando OFF ignorato: troppa frequenza")
-            
+
     def _can_execute_command(self):
         current_time = time.time()
         if current_time - self._last_called > 60:
@@ -92,7 +95,7 @@ class MyIrrigationSwitch(SwitchEntity):
 
     def _send_command(self, command):
         _LOGGER.info("Invio comando HTTP: %s", command)
-        
+
         retries = 3
         for attempt in range(retries):
             session = requests.Session()
@@ -133,7 +136,7 @@ class MyIrrigationSwitch(SwitchEntity):
                 response.raise_for_status()
 
                 _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
-                break  # Comando riuscito, interrompi il ciclo
+                break
 
             except requests.exceptions.RequestException as e:
                 _LOGGER.error("Errore durante l'invio del comando '%s': %s", command, e)
