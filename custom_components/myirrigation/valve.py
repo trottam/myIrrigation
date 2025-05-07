@@ -158,7 +158,7 @@ class MyIrrigationValve(ValveEntity):
                     "moduleSerialNumber": self.serial_number,
                     "command": command,
                     "commandType": "status",
-                    "commandParams": "0"
+                    "commandParams": "1"
                 }
 
                 command_headers = HEADERS_COMMAND(self.module_id, cookie_str)
