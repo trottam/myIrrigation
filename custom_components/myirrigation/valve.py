@@ -112,55 +112,55 @@ class MyIrrigationValve(ValveEntity):
     def _get_valve_status(self):
         """Interroga il portale per sapere se la valvola è aperta."""
         retries = 3
-            for attempt in range(retries):
-                session = requests.Session()
-                try:
-                    session.get(COOKIE_URL)
-                    cookie = session.cookies.get_dict()
-                    cookie_str = "; ".join(f"{k}={v}" for k, v in cookie.items())
-    
-                    login_payload = {
-                        "email": self.username,
-                        "password": self.password,
-                        "country-select": self.zone
-                    }
-    
-                    login_response = session.post(
-                        LOGIN_URL,
-                        headers={**HEADERS_LOGIN, "Cookie": cookie_str},
-                        data=login_payload,
-                        timeout=10
-                    )
-                    login_response.raise_for_status()
-    
-                    modules_api_url = f"https://www.mysolem.com/remote/module/state?moduleId={self.module_id}"
-                    response = session.get(
-                        modules_api_url, 
-                        headers={**MODULE_HEADERS, "Cookie": cookie_str, "Referer":modules_api_url}, 
-                        data = self.module_id
-                    )
+        for attempt in range(retries):
+            session = requests.Session()
+            try:
+                session.get(COOKIE_URL)
+                cookie = session.cookies.get_dict()
+                cookie_str = "; ".join(f"{k}={v}" for k, v in cookie.items())
 
-                    response.raise_for_status()
-                    
-                    waterData=response.json();
-                    watering = waterData['status']['watering']
-                    running_program = watering['runningProgram']
-                    running_station = watering['runningStation']
-                    state = watering['state']
-                    
-                    _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
-                    if any(val != 0 for val in [running_program, running_station, state]):
-                        return True  # Ritorna True se solo se la risposta è positiva
-                except requests.exceptions.RequestException as e:
-                    _LOGGER.error("Errore durante l'invio del comando '%s': %s", e)
-                    if attempt < retries - 1:
-                        _LOGGER.info("Riprovo tra 2 secondi (tentativo %d di %d)...", attempt + 2, retries)
-                        time.sleep(2)
-                    else:
-                        _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.")
-                finally:
-                    session.close()
-            return False  # Ritorna False se non è riuscito a inviare il comando
+                login_payload = {
+                    "email": self.username,
+                    "password": self.password,
+                    "country-select": self.zone
+                }
+
+                login_response = session.post(
+                    LOGIN_URL,
+                    headers={**HEADERS_LOGIN, "Cookie": cookie_str},
+                    data=login_payload,
+                    timeout=10
+                )
+                login_response.raise_for_status()
+
+                modules_api_url = f"https://www.mysolem.com/remote/module/state?moduleId={self.module_id}"
+                response = session.get(
+                    modules_api_url, 
+                    headers={**MODULE_HEADERS, "Cookie": cookie_str, "Referer":modules_api_url}, 
+                    data = self.module_id
+                )
+
+                response.raise_for_status()
+                
+                waterData=response.json();
+                watering = waterData['status']['watering']
+                running_program = watering['runningProgram']
+                running_station = watering['runningStation']
+                state = watering['state']
+                
+                _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
+                if any(val != 0 for val in [running_program, running_station, state]):
+                    return True  # Ritorna True se solo se la risposta è positiva
+            except requests.exceptions.RequestException as e:
+                _LOGGER.error("Errore durante l'invio del comando '%s': %s", e)
+                if attempt < retries - 1:
+                    _LOGGER.info("Riprovo tra 2 secondi (tentativo %d di %d)...", attempt + 2, retries)
+                    time.sleep(2)
+                else:
+                    _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.")
+            finally:
+                session.close()
+        return False  # Ritorna False se non è riuscito a inviare il comando
     
     async def async_turn_on(self, **kwargs):
         """Apre la valvola."""
@@ -260,7 +260,7 @@ class MyIrrigationValve(ValveEntity):
                 _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
                 return True  # Ritorna True solo se la risposta è positiva
             except requests.exceptions.RequestException as e:
-                _LOGGER.error("Errore durante l'invio del comando '%s': %s", command, e)
+                _LOGGER.error("Errore durante l'invio del comando: %s", command, e)
                 if attempt < retries - 1:
                     _LOGGER.info("Riprovo tra 2 secondi (tentativo %d di %d)...", attempt + 2, retries)
                     time.sleep(2)
