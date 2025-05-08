@@ -148,7 +148,7 @@ class MyIrrigationValve(ValveEntity):
                 running_station = watering['runningStation']
                 state = watering['state']
                 
-                _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
+                _LOGGER.debug("Comando '%s' inviato con successo", response.text)
                 if any(val != 0 for val in [running_program, running_station, state]):
                     return True  # Ritorna True se solo se la risposta è positiva
             except requests.exceptions.RequestException as e:
