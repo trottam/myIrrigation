@@ -131,9 +131,16 @@ class MyIrrigationValve(ValveEntity):
                         headers={**MODULE_HEADERS, "Cookie": cookie_str, "Referer":modules_api_url}, 
                         data = self.module_id
                     )
-    
+
+                    waterData=response.json();
+                    watering = waterData['status']['watering']
+                    running_program = watering['runningProgram']
+                    running_station = watering['runningStation']
+                    state = watering['state']
+                    
                     _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
-                    return True  # Ritorna True solo se la risposta è positiva
+                    if any(val != 0 for val in [running_program, running_station, state]):
+                        return True  # Ritorna True se solo se la risposta è positiva
                 except requests.exceptions.RequestException as e:
                     _LOGGER.error("Errore durante l'invio del comando '%s': %s", command, e)
                     if attempt < retries - 1:
