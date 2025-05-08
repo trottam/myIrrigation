@@ -132,6 +132,8 @@ class MyIrrigationValve(ValveEntity):
                         data = self.module_id
                     )
 
+                    response.raise_for_status()
+                    
                     waterData=response.json();
                     watering = waterData['status']['watering']
                     running_program = watering['runningProgram']
