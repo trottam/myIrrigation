@@ -26,6 +26,14 @@ HEADERS_LOGIN = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
 }
 
+MODULE_HEADERS = {
+    "Accept": "*/*",
+    "Accept-Encoding": "gzip, deflate, br, zstd",
+    "Accept-Language": "it-IT,it;q=0.9,en;q=0.8",
+    "Connection": "keep-alive",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
+}
+
 def HEADERS_COMMAND(id_module, cookie):
     return {
         "Accept": "*/*",
@@ -94,12 +102,12 @@ class MyIrrigationValve(ValveEntity):
         return self._position
 
     async def async_update(self):
-    """Aggiorna lo stato della valvola. Viene chiamato solo da HA sotto esplicita chiamata"""
-    _LOGGER.debug("Chiamato async_update per %s", self.entity_id)
-    result = await self.hass.async_add_executor_job(self._get_valve_status)
-    if result is not None:
-        self._is_open = result
-        self._position = 1 if result else 0
+        """Aggiorna lo stato della valvola. Viene chiamato solo da HA sotto esplicita chiamata"""
+        _LOGGER.debug("Chiamato async_update per %s", self.entity_id)
+        result = await self.hass.async_add_executor_job(self._get_valve_status)
+        if result is not None:
+            self._is_open = result
+            self._position = 1 if result else 0
 
     def _get_valve_status(self):
         """Interroga il portale per sapere se la valvola è aperta."""
@@ -144,12 +152,12 @@ class MyIrrigationValve(ValveEntity):
                     if any(val != 0 for val in [running_program, running_station, state]):
                         return True  # Ritorna True se solo se la risposta è positiva
                 except requests.exceptions.RequestException as e:
-                    _LOGGER.error("Errore durante l'invio del comando '%s': %s", command, e)
+                    _LOGGER.error("Errore durante l'invio del comando '%s': %s", e)
                     if attempt < retries - 1:
                         _LOGGER.info("Riprovo tra 2 secondi (tentativo %d di %d)...", attempt + 2, retries)
                         time.sleep(2)
                     else:
-                        _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.", command)
+                        _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.")
                 finally:
                     session.close()
             return False  # Ritorna False se non è riuscito a inviare il comando
