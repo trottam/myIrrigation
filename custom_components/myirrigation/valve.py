@@ -1,6 +1,7 @@
 import logging
 import requests
 import time
+import asyncio
 from homeassistant.components.valve import ValveEntity, ValveEntityFeature
 from homeassistant import config_entries
 from homeassistant.helpers.entity import EntityDescription
@@ -92,6 +93,58 @@ class MyIrrigationValve(ValveEntity):
             return 0  # Fallback al valore di 0 se _position è None
         return self._position
 
+    async def async_update(self):
+    """Aggiorna lo stato della valvola. Viene chiamato solo da HA sotto esplicita chiamata"""
+    _LOGGER.debug("Chiamato async_update per %s", self.entity_id)
+    result = await self.hass.async_add_executor_job(self._get_valve_status)
+    if result is not None:
+        self._is_open = result
+        self._position = 1 if result else 0
+
+    def _get_valve_status(self):
+        """Interroga il portale per sapere se la valvola è aperta."""
+        retries = 3
+            for attempt in range(retries):
+                session = requests.Session()
+                try:
+                    session.get(COOKIE_URL)
+                    cookie = session.cookies.get_dict()
+                    cookie_str = "; ".join(f"{k}={v}" for k, v in cookie.items())
+    
+                    login_payload = {
+                        "email": self.username,
+                        "password": self.password,
+                        "country-select": self.zone
+                    }
+    
+                    login_response = session.post(
+                        LOGIN_URL,
+                        headers={**HEADERS_LOGIN, "Cookie": cookie_str},
+                        data=login_payload,
+                        timeout=10
+                    )
+                    login_response.raise_for_status()
+    
+                    modules_api_url = f"https://www.mysolem.com/remote/module/state?moduleId={self.module_id}"
+                    response = session.get(
+                        modules_api_url, 
+                        headers={**MODULE_HEADERS, "Cookie": cookie_str, "Referer":modules_api_url}, 
+                        data = self.module_id
+                    )
+    
+                    _LOGGER.debug("Comando '%s' inviato con successo: %s", command, response.text)
+                    return True  # Ritorna True solo se la risposta è positiva
+                except requests.exceptions.RequestException as e:
+                    _LOGGER.error("Errore durante l'invio del comando '%s': %s", command, e)
+                    if attempt < retries - 1:
+                        _LOGGER.info("Riprovo tra 2 secondi (tentativo %d di %d)...", attempt + 2, retries)
+                        time.sleep(2)
+                    else:
+                        _LOGGER.error("Tentativi esauriti: comando '%s' non inviato.", command)
+                finally:
+                    session.close()
+            return False  # Ritorna False se non è riuscito a inviare il comando
+    
     async def async_turn_on(self, **kwargs):
         """Apre la valvola."""
         if self._can_execute_command():
@@ -101,7 +154,16 @@ class MyIrrigationValve(ValveEntity):
                 self._position = 1
                 self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs):
+#    async def async_turn_off(self, **kwargs):
+#        """Chiude la valvola."""
+#        if self._can_execute_command():
+#            result = await self.hass.async_add_executor_job(self._send_command, "off")
+#            if result:
+#                self._is_open = False
+#                self._position = 0
+#                self.async_write_ha_state()
+
+    async def async_turn_off(self, retries=3, **kwargs):
         """Chiude la valvola."""
         if self._can_execute_command():
             result = await self.hass.async_add_executor_job(self._send_command, "off")
@@ -109,6 +171,13 @@ class MyIrrigationValve(ValveEntity):
                 self._is_open = False
                 self._position = 0
                 self.async_write_ha_state()
+        elif retries > 0:
+            _LOGGER.warning("Comando OFF ignorato, ritento tra 60 secondi. Tentativi rimasti: %s", retries)
+            self.hass.async_create_task(self._retry_async_turn_off(retries - 1))
+
+    async def _retry_async_turn_off(self, retries):
+        await asyncio.sleep(60)
+        await self.async_turn_off(retries=retries)
 
     async def async_open_valve(self, **kwargs):
         """Apre la valvola."""
