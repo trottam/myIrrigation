@@ -152,7 +152,7 @@ class MyIrrigationValve(ValveEntity):
                 if any(val != 0 for val in [running_program, running_station, state]):
                     return True  # Ritorna True se solo se la risposta è positiva
             except requests.exceptions.RequestException as e:
-                _LOGGER.error("Errore durante l'invio del comando '%s': %s", e)
+                _LOGGER.error("Errore durante l'invio del comando: %s", e)
                 if attempt < retries - 1:
                     _LOGGER.info("Riprovo tra 2 secondi (tentativo %d di %d)...", attempt + 2, retries)
                     time.sleep(2)
