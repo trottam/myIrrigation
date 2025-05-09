@@ -1,14 +1,11 @@
 from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers import config_entry_flow
-from .config_flow import ConfigFlow
 
 DOMAIN = "myirrigation"
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Setup per la configurazione iniziale (quando non si usa un config entry)"""
-    # Registra il flusso di configurazione
-    config_entry_flow.register(DOMAIN, ConfigFlow)
+    # La registrazione del flusso di configurazione è gestita automaticamente
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
